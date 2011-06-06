@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Brad Seefeld"]
   s.email       = ["brad@urbaninfluence.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{An implemention of DataTable for Google Visualization.}
+  s.description = %q{A DataTable that provides Google Visualization query execution against data that may not be accessible by ActiveRecord.}
 
   s.rubyforge_project = "rgviz_data_table"
 

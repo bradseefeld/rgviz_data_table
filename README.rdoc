@@ -3,6 +3,7 @@
 An extension to the {rgviz}{} library to provide a non-activerecord way to connect data to Google Visualization clients.
 
 # Sample code
+
 rows = []
 
 CSV.each_line(file, "r") do |row|
