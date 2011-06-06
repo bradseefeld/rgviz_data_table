@@ -1,0 +1,1 @@
+require "rgviz/data_table"
