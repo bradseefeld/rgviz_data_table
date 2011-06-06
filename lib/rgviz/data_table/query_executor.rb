@@ -58,7 +58,7 @@ module Rgviz
       def self.parse_select(select)
         selects = []
         select.to_s.split(",").each do |select|
-          selects << Rgviz::DataTable::Column.factory(select)
+          selects << Rgviz::DataTable::Column.factory(select.strip)
         end
         selects
       end

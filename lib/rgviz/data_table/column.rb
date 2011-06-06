@@ -3,6 +3,8 @@ module Rgviz
     class Column
       
       def self.factory(statement)
+        statement = statement.strip
+        
         col = nil
         if m = statement.match(/sum\((.*)\)/i)
           col = Rgviz::DataTable::SumColumn.new(m[1], statement)
