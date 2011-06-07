@@ -1,6 +1,6 @@
 module Rgviz
   module DataTable
-    class MaxColumn
+    class MaxColumn < Rgviz::DataTable::Column
       
       def evaluate(rows)
         max = nil

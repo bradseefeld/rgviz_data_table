@@ -5,6 +5,7 @@ require "rgviz/data_table/compound_filter"
 require "rgviz/data_table/column_value_filter"
 require "rgviz/data_table/column"
 require "rgviz/data_table/sum_column"
+require "rgviz/data_table/max_column"
 require "rgviz/data_table/order"
 
 module Rgviz
