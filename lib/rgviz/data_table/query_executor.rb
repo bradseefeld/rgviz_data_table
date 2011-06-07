@@ -29,7 +29,7 @@ module Rgviz
         end
         
         # Get the select part of the statement
-        selects = parse_select(query.select)
+        selects = Rgviz::DataTable::Parser.parse_select(query.select)
         
         # Filter the data.
         rows = execute_where(string_keys, query.where)
@@ -38,31 +38,112 @@ module Rgviz
         rows = execute_grouping(rows, query.group_by, selects)
         
         # Perform ordering
+        rows = execute_ordering(rows, query.order_by)
+        
+        # Perform limits
+        rows = execute_offset(rows, query.offset)
+        rows = execute_limits(rows, query.limit)
+        
+        # Perform labels
         
         # Perform selects
-        
+        rows = execute_select(rows, selects)
         rows
       end
       
       ##
+      # Execute the select statements against the rows. This potentially removes columns from
+      # the result set.
       #
-      def self.execute_grouping(rows, raw_group, selects)
+      # @param rows [Array] The data
+      # @param selects [Array] The columns to keep
+      # @return [Array] The result set with only the desired columns
+      def self.execute_select(rows, selects)
+        return rows unless selects
+        return rows if selects.length == 0
         
-        groups = parse_group(raw_group)
-        return rows if groups.empty?
-        
-        rows = group(rows, groups, selects)      
-        rows
-      end
-      
-      def self.parse_select(select)
-        selects = []
-        select.to_s.split(",").each do |select|
-          selects << Rgviz::DataTable::Column.factory(select.strip)
+        columns = []
+        selects.each do |select|
+          columns << select.label
         end
-        selects
+        
+        selected = []
+        rows.each do |row|
+          new_row = {}
+          row.each_pair do |key, value|
+            if columns.include?(key)
+              new_row[key] = value
+            end
+          end
+          selected << new_row
+        end
+        selected
       end
       
+      ##
+      # Execute an offset clause against the given set of data.
+      #
+      # @param rows [Array] The data
+      # @param offset [Rgviz::Offset|String|Integer] The offset
+      # @return [Array] The data after the given offset (inclusive)
+      def self.execute_offset(rows, offset)
+        return rows unless offset
+        rows[offset.to_s.to_i..-1] || []
+      end
+      
+      ##
+      # Execute a limit clause against the given set of data.
+      #
+      # @param rows [Array] The data
+      # @param offset [Rgviz::Limit|String|Integer] The limit
+      # @return [Array] The data limited to the given limit.
+      def self.execute_limits(rows, limit)
+        return rows unless limit
+        rows[0, limit.to_s.to_i]
+      end
+      
+      ##
+      # Order the given results by the given critiera.
+      #
+      # @param rows [Array] The data
+      # @param raw_ordering [Array] The order by statements. Processed in chronological order.
+      # @return [Array] The sorted data.
+      def self.execute_ordering(rows, raw_ordering)
+        orders = Rgviz::DataTable::Parser.parse_order(raw_ordering)
+        return unless orders
+        
+        rows.sort do |left, right|
+          equality = 0
+          index = 0
+          while (equality == 0 and index < orders.length)
+            equality = orders[index].compare(left, right)
+            index += 1
+          end
+          equality
+        end
+      end
+      
+      ##
+      # Perform any grouping on the data. If columns are to be aggregated, they
+      # are aggregated now.
+      #
+      # @param rows [Array] The data
+      # @param raw_group [Rgviz::Group|String] The raw group by statement.
+      # @param selects [Array] The select statements.
+      # @return [Array] The grouped data
+      def self.execute_grouping(rows, raw_group, selects)        
+        groups = Rgviz::DataTable::Parser.parse_group(raw_group)
+        return rows if groups.empty?
+        group(rows, groups, selects)      
+      end
+      
+      ##
+      # Helper method for executing grouping clauses. Does the heavy lifting.
+      #
+      # @param rows [Array] The data to group
+      # @param groups [Array] The group by clauses
+      # @param selects [Array] The select statements (in case we need to do any aggregation)
+      # @return [Array] The grouped rows.
       def self.group(rows, groups, selects)
         
         if groups.empty?
@@ -91,60 +172,23 @@ module Rgviz
       end
     
       ##
-      # 
+      # Execute any filtering on the given data.
       #
-      # @param table []
+      # @param rows [Array] The rows to execute the filter on.
       # @param where [Rgviz::Where] The where clause part of the query.
+      # @return [Array] The filtered data.
       def self.execute_where(rows, where)
         return rows unless where
       
-        filters = parse_where(where)
-      
-        filters.each do |filter|
-          filtered_rows = []
-          rows.each do |row|
-            if filter.match?(row)
-              filtered_rows << row
-            end
+        filter = Rgviz::DataTable::Parser.parse_where(where)
+        
+        filtered_rows = []
+        rows.each do |row|
+          if filter.match?(row)
+            filtered_rows << row
           end
-          rows = filtered_rows
         end
-        rows
-      end
-      
-      def self.parse_group(group)
-        return [] unless group
-        groups = group.to_s.split(",")
-        groups.each do |group|
-          group.strip!
-        end
-        groups
-      end
-    
-      def self.parse_where(where)
-      
-        filters = []
-      
-        # TODO: First break into groups by parenthesis.
-      
-        # this is very naive...
-        ands = where.to_s.split(/(\sand\s)/i)
-        count = 0
-        ands.each do |raw|
-          if count % 2 == 0
-            index = 0
-            operator = nil
-            Rgviz::DataTable::ComparisonFilter.operators.each do |op|
-              operator = op if raw.include?(op)
-            end
-            if operator
-              parts = raw.split(operator)
-              filters << Rgviz::DataTable::ColumnValueFilter.new(parts[0].strip, parts[1].strip, operator)
-            end
-          end
-          count += 1
-        end
-        filters
+        filtered_rows
       end
     end
   end

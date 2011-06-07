@@ -1,6 +1,6 @@
 == Rgviz DataTable
 
-An extension to the {rgviz}{} library to provide a non-activerecord way to connect data to Google Visualization clients.
+An extension to the {rgviz}{https://github.com/asterite/rgviz} library to provide a non-activerecord way to connect data to Google Visualization clients.
 
 # Sample code
 
@@ -10,8 +10,7 @@ CSV.each_line(file, "r") do |row|
   rows.add(row)
 end
 
-query = Rgviz::Parser.parse(params[:tq])
-result_rows = Rgviz::QueryExecutor.execute(rows, query)
+result_rows = Rgviz::QueryExecutor.execute(rows, params[:tq])
 
 # result_rows now has the results of the query.
 
@@ -19,8 +18,6 @@ result_rows = Rgviz::QueryExecutor.execute(rows, query)
 
 In order of needed:
 
-* Implement ordering statements
-* Implement select statements
 * Implement labels
-* Refactor where parsing so that parens and OR statements are supported
+* Refactor where parsing to fix bug where (, ), AND or OR may appear in values (E.g., WHERE column = "AND")
 * Implement pivots
