@@ -51,6 +51,8 @@ module Rgviz
         rows
       end
       
+      protected
+      
       ##
       # Execute the select statements against the rows. This potentially removes columns from
       # the result set.
