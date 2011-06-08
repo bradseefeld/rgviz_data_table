@@ -21,3 +21,4 @@ In order of needed:
 * Implement labels
 * Refactor where parsing to fix bug where (, ), AND or OR may appear in values (E.g., WHERE column = "AND")
 * Implement pivots
+* Ordering by a column that does not exist causes a nil class exception.

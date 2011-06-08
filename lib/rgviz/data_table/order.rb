@@ -15,7 +15,13 @@ module Rgviz
       def compare(left, right)
         equality = 0
         
-        if left[column] > right[column]
+        if left[column].nil? && right[column].nil?
+          equality = 0
+        elsif left[column].nil?
+          equality = 1
+        elsif right[column].nil?
+          equality = -1
+        elsif left[column] > right[column]
           equality = 1
         elsif left[column] < right[column]
           equality = -1
