@@ -10,6 +10,10 @@ module Rgviz
           col = Rgviz::DataTable::SumColumn.new(m[1], statement)
         end
         
+        if m = statement.match(/max\((.*)\)/i)
+          col = Rgviz::DataTable::MaxColumn.new(m[1], statement)
+        end
+        
         unless col
           col = Rgviz::DataTable::Column.new(statement)
         end
